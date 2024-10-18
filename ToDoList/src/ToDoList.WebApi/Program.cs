@@ -1,4 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
+
 {
     //Configure DI
     builder.Services.AddControllers();
