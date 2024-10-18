@@ -10,6 +10,18 @@ public class ToDoItemsController : ControllerBase
 {
     private static readonly List<ToDoItem> Items = [];
 
+    //Od Pala
+    // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
+    //         {
+    //             ToDoItemId = 1,
+    //             Name = "Pondeli",
+    //             Description = "vstavat",
+    //             IsCompleted = true
+    //         }
+    //     };
+
+    // public static object ToDoItemId { get; private set; }
+
     [HttpPost]
     public IActionResult Create(ToDoItemCreateRequestDto request)
     {
@@ -32,15 +44,29 @@ public class ToDoItemsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult Read(ToDoItemReadRequestDto request)
+    public IActionResult Read()
     {
-        //map to Domain object as soon as possible
-        var items = request.FromDomain();
+        var items = new List<ToDoItem>
+        {
+            new ToDoItem
+            {
+                ToDoItemId = 1,
+                Name = "Pondeli",
+                Description = "vstavat",
+                IsCompleted = true
+            }
+        };
 
-        //try to read a list of items
         try
         {
-            return (items == null || items.Count == 0) ? NotFound() : Ok(items);
+            if (items == null)
+            {
+                return NotFound(); //404
+            }
+
+            var response = items.Select(item => ToDoItemReadResponseDto.FromDomain(item)).ToList();
+
+            return Ok(response); //200
         }
         catch (Exception ex)
         {
@@ -83,9 +109,9 @@ public class ToDoItemsController : ControllerBase
 
             //Tyto radky ted asi nejsou optimalni, protoze kdzy pouziju record, musim vyplnit vsechny properties.
             //TODO: Nastavit defaults? Nebo pouzit radeji class? Urcite nechci pri updatu vyplnovat vse.
-            itemToUpdate.Name = requestItem.Name ?? itemToUpdate.Name;
-            itemToUpdate.Description = requestItem.Description ?? itemToUpdate.Description;
-            itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;
+            // itemToUpdate.Name = requestItem.Name ?? itemToUpdate.Name;
+            // itemToUpdate.Description = requestItem.Description ?? itemToUpdate.Description;
+            // itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;
 
             return Ok(itemToUpdate);
         }
