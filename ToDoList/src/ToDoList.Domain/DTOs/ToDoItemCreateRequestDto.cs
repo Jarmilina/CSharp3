@@ -12,3 +12,4 @@ namespace ToDoList.Domain.DTOs
             IsCompleted = IsCompleted,
         };
     }
+}

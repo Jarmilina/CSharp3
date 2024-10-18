@@ -11,3 +11,4 @@ public record ToDoItemUpdateRequestDto(int ToDoItemId, string Name, string Descr
         Description = Description,
         IsCompleted = IsCompleted,
     };
+}

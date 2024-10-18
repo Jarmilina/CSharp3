@@ -68,27 +68,33 @@ public class ToDoItemsController : ControllerBase
             var response = items.Select(item => ToDoItemReadResponseDto.FromDomain(item)).ToList();
 
             return Ok(response); //200
-    }
-
-  //Z mainu od Vaska z lekce?
-    [HttpGet]
-    public ActionResult<IEnumerable<ToDoItemGetResponseDto>> Read()
-    {
-        List<ToDoItem> itemsToGet;
-        try
-        {
-            itemsToGet = items;
         }
+
         catch (Exception ex)
         {
             return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
         }
-        
-        //respond to client
-        return (itemsToGet is null)
-            ? NotFound() //404
-            : Ok(itemsToGet.Select(ToDoItemGetResponseDto.FromDomain)); //200
     }
+
+    //Z mainu od Vaska z lekce?
+    // [HttpGet]
+    // public ActionResult<IEnumerable<ToDoItemGetResponseDto>> Read()
+    // {
+    //     List<ToDoItem> itemsToGet;
+    //     try
+    //     {
+    //         itemsToGet = items;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
+    //     }
+
+    //     //respond to client
+    //     return (itemsToGet is null)
+    //         ? NotFound() //404
+    //         : Ok(itemsToGet.Select(ToDoItemGetResponseDto.FromDomain)); //200
+    // }
 
     [HttpGet("{toDoItemId:int}")]
     public IActionResult ReadById(int toDoItemId)
