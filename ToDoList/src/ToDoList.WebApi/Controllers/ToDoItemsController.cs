@@ -1,4 +1,5 @@
 namespace ToDoList.WebApi.Controllers;
+
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
@@ -7,7 +8,19 @@ using ToDoList.Domain.Models;
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    public static readonly List<ToDoItem> items = []; //public only temporarily!
+    public static readonly List<ToDoItem> Items = []; //public only temporarily!
+
+    //Od Pala
+    // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
+    //         {
+    //             ToDoItemId = 1,
+    //             Name = "Pondeli",
+    //             Description = "vstavat",
+    //             IsCompleted = true
+    //         }
+    //     };
+
+    // public static object ToDoItemId { get; private set; }
 
     [HttpPost]
     public IActionResult Create(ToDoItemCreateRequestDto request)
@@ -18,8 +31,8 @@ public class ToDoItemsController : ControllerBase
         //try to create an item
         try
         {
-            item.ToDoItemId = items.Count == 0 ? 1 : items.Max(o => o.ToDoItemId) + 1;
-            items.Add(item);
+            item.ToDoItemId = Items.Count == 0 ? 1 : Items.Max(o => o.ToDoItemId) + 1;
+            Items.Add(item);
         }
         catch (Exception ex)
         {
@@ -27,42 +40,131 @@ public class ToDoItemsController : ControllerBase
         }
 
         //respond to client
+        //return Created(); //201
         return NoContent(); //201 //tato metoda z nějakého důvodu vrací status code No Content 204, zjištujeme proč ;)
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<ToDoItemGetResponseDto>> Read()
+    public ActionResult<IEnumerable<ToDoItemReadResponseDto>> Read()
     {
-        List<ToDoItem> itemsToGet;
+        var items = new List<ToDoItem>
+        {
+            new ToDoItem
+            {
+                ToDoItemId = 1,
+                Name = "Pondeli",
+                Description = "vstavat",
+                IsCompleted = true
+            }
+        };
+
         try
         {
-            itemsToGet = items;
+            if (items == null)
+            {
+                return NotFound(); //404
+            }
+
+            var response = items.Select(item => ToDoItemReadResponseDto.FromDomain(item)).ToList();
+
+            return Ok(response); //200
+        }
+
+        catch (Exception ex)
+        {
+            return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
+        }
+    }
+
+    //Z mainu od Vaska z lekce?
+    // [HttpGet]
+    // public ActionResult<IEnumerable<ToDoItemGetResponseDto>> Read()
+    // {
+    //     List<ToDoItem> itemsToGet;
+    //     try
+    //     {
+    //         itemsToGet = items;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
+    //     }
+
+    //     //respond to client
+    //     return (itemsToGet is null)
+    //         ? NotFound() //404
+    //         : Ok(itemsToGet.Select(ToDoItemGetResponseDto.FromDomain)); //200
+    // }
+
+    [HttpGet("{toDoItemId:int}")]
+    public IActionResult ReadById(int toDoItemId)
+    {
+        ToDoItem? item;
+
+        //try to read the item
+        try
+        {
+            item = Items.Find(o => o.ToDoItemId == toDoItemId);
+            return (item == null) ? NotFound() : Ok(item);
         }
         catch (Exception ex)
         {
             return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
         }
-        //respond to client
-        return (itemsToGet is null)
-            ? NotFound() //404
-            : Ok(itemsToGet.Select(ToDoItemGetResponseDto.FromDomain)); //200
-    }
-
-    [HttpGet("{toDoItemId:int}")]
-    public IActionResult ReadById(int toDoItemId)
-    {
-        return Ok();
     }
 
     [HttpPut("{toDoItemId:int}")]
     public IActionResult UpdateById(int toDoItemId, [FromBody] ToDoItemUpdateRequestDto request)
     {
-        return Ok();
+        var requestItem = request.ToDomain();
+        ToDoItem? itemToUpdate;
+
+        //try to find and update the item
+        try
+        {
+            itemToUpdate = Items.Find(o => o.ToDoItemId == toDoItemId);
+
+            if (itemToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            //Tyto radky ted asi nejsou optimalni, protoze kdzy pouziju record, musim vyplnit vsechny properties.
+            //TODO: Nastavit defaults? Nebo pouzit radeji class? Urcite nechci pri updatu vyplnovat vse.
+            // itemToUpdate.Name = requestItem.Name ?? itemToUpdate.Name;
+            // itemToUpdate.Description = requestItem.Description ?? itemToUpdate.Description;
+            // itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;
+
+            return Ok(itemToUpdate);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
+        }
     }
 
     [HttpDelete("{toDoItemId:int}")]
     public IActionResult DeleteById(int toDoItemId)
     {
-        return Ok();
+        ToDoItem? itemToDelete = new();
+
+        //try to find and delete the item
+        try
+        {
+            itemToDelete = Items.Find(o => o.ToDoItemId == toDoItemId);
+
+            if (itemToDelete == null)
+            {
+                return NotFound();
+            }
+
+            Items.Remove(itemToDelete);
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
+        }
     }
 }
