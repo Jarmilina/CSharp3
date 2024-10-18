@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ToDoList.Domain.Models;
 using ToDoList.WebApi.Controllers;
 
+
 namespace ToDoList.Test
 {
     public class GetTests
@@ -12,7 +13,7 @@ namespace ToDoList.Test
             // Arrange
             var controller = new ToDoItemsController();
             var toDoItem = new ToDoItem();
-            ToDoItemsController.items.Add(toDoItem);
+            ToDoItemsController.Items.Add(toDoItem);
 
             // Act
             var result = controller.Read();

@@ -8,7 +8,7 @@ using ToDoList.Domain.Models;
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    private static readonly List<ToDoItem> Items = []; //public only temporarily!
+    public static readonly List<ToDoItem> Items = []; //public only temporarily!
 
     //Od Pala
     // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
@@ -45,7 +45,7 @@ public class ToDoItemsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult Read()
+    public ActionResult<IEnumerable<ToDoItemReadResponseDto>> Read()
     {
         var items = new List<ToDoItem>
         {
