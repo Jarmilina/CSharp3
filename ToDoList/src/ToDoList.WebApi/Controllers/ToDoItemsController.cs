@@ -8,7 +8,7 @@ using ToDoList.Domain.Models;
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    private static readonly List<ToDoItem> Items = [];
+    private static readonly List<ToDoItem> Items = []; //public only temporarily!
 
     //Od Pala
     // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
@@ -40,7 +40,8 @@ public class ToDoItemsController : ControllerBase
         }
 
         //respond to client
-        return Created(); //201
+        //return Created(); //201
+        return NoContent(); //201 //tato metoda z nějakého důvodu vrací status code No Content 204, zjištujeme proč ;)
     }
 
     [HttpGet]
@@ -67,11 +68,26 @@ public class ToDoItemsController : ControllerBase
             var response = items.Select(item => ToDoItemReadResponseDto.FromDomain(item)).ToList();
 
             return Ok(response); //200
+    }
+
+  //Z mainu od Vaska z lekce?
+    [HttpGet]
+    public ActionResult<IEnumerable<ToDoItemGetResponseDto>> Read()
+    {
+        List<ToDoItem> itemsToGet;
+        try
+        {
+            itemsToGet = items;
         }
         catch (Exception ex)
         {
             return Problem(ex.Message, null, StatusCodes.Status500InternalServerError); //500
         }
+        
+        //respond to client
+        return (itemsToGet is null)
+            ? NotFound() //404
+            : Ok(itemsToGet.Select(ToDoItemGetResponseDto.FromDomain)); //200
     }
 
     [HttpGet("{toDoItemId:int}")]
@@ -146,4 +162,3 @@ public class ToDoItemsController : ControllerBase
         }
     }
 }
-
