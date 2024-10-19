@@ -8,7 +8,7 @@ using ToDoList.Domain.Models;
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    public static readonly List<ToDoItem> Items = []; //public only temporarily!
+    public List<ToDoItem> Items = []; //public only temporarily!
 
     //Od Pala
     // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
@@ -23,7 +23,7 @@ public class ToDoItemsController : ControllerBase
     // public static object ToDoItemId { get; private set; }
 
     [HttpPost]
-    public IActionResult Create(ToDoItemCreateRequestDto request)
+    public ActionResult<ToDoItemCreateRequestDto> Create(ToDoItemCreateRequestDto request)
     {
         //map to Domain object as soon as possible
         var item = request.ToDomain();
@@ -41,22 +41,23 @@ public class ToDoItemsController : ControllerBase
 
         //respond to client
         //return Created(); //201
-        return NoContent(); //201 //tato metoda z nějakého důvodu vrací status code No Content 204, zjištujeme proč ;)
+        return Created(); //201 //tato metoda z nějakého důvodu vrací status code No Content 204, zjištujeme proč ;)
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<ToDoItemReadResponseDto>> Read()
     {
-        var items = new List<ToDoItem>
-        {
-            new ToDoItem
-            {
-                ToDoItemId = 1,
-                Name = "Pondeli",
-                Description = "vstavat",
-                IsCompleted = true
-            }
-        };
+        // var items = new List<ToDoItem>
+        // {
+        //     new ToDoItem
+        //     {
+        //         ToDoItemId = 1,
+        //         Name = "Pondeli",
+        //         Description = "vstavat",
+        //         IsCompleted = true
+        //     }
+        // };
+        var items = Items;
 
         try
         {
@@ -97,15 +98,18 @@ public class ToDoItemsController : ControllerBase
     // }
 
     [HttpGet("{toDoItemId:int}")]
-    public IActionResult ReadById(int toDoItemId)
+    public ActionResult<ToDoItemReadResponseDto> ReadById(int toDoItemId)
     {
-        ToDoItem? item;
-
         //try to read the item
         try
         {
-            item = Items.Find(o => o.ToDoItemId == toDoItemId);
-            return (item == null) ? NotFound() : Ok(item);
+            var item = Items.Find(o => o.ToDoItemId == toDoItemId);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            var response = ToDoItemReadResponseDto.FromDomain(item);
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -114,15 +118,14 @@ public class ToDoItemsController : ControllerBase
     }
 
     [HttpPut("{toDoItemId:int}")]
-    public IActionResult UpdateById(int toDoItemId, [FromBody] ToDoItemUpdateRequestDto request)
+    public ActionResult<ToDoItemUpdateResponseDto> UpdateById(int toDoItemId, [FromBody] ToDoItemUpdateRequestDto request)
     {
         var requestItem = request.ToDomain();
-        ToDoItem? itemToUpdate;
 
         //try to find and update the item
         try
         {
-            itemToUpdate = Items.Find(o => o.ToDoItemId == toDoItemId);
+            var itemToUpdate = Items.Find(o => o.ToDoItemId == toDoItemId);
 
             if (itemToUpdate == null)
             {
@@ -133,9 +136,22 @@ public class ToDoItemsController : ControllerBase
             //TODO: Nastavit defaults? Nebo pouzit radeji class? Urcite nechci pri updatu vyplnovat vse.
             // itemToUpdate.Name = requestItem.Name ?? itemToUpdate.Name;
             // itemToUpdate.Description = requestItem.Description ?? itemToUpdate.Description;
-            // itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;
+            // itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;\
 
-            return Ok(itemToUpdate);
+            // var itemIndexToUpdate = Items.FindIndex(i => i.ToDoItemId == toDoItemId);
+            // if (itemIndexToUpdate == -1)
+            // {
+            //     return NotFound(); //404
+            // }
+            // itemToUpdate.ToDoItemId = toDoItemId;
+            // Items[itemIndexToUpdate] = itemToUpdate;
+            itemToUpdate.Name = requestItem.Name;
+            itemToUpdate.Description = requestItem.Description;
+            itemToUpdate.IsCompleted = requestItem.IsCompleted;
+
+            var response = ToDoItemUpdateResponseDto.FromDomain(itemToUpdate);
+
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -144,7 +160,7 @@ public class ToDoItemsController : ControllerBase
     }
 
     [HttpDelete("{toDoItemId:int}")]
-    public IActionResult DeleteById(int toDoItemId)
+    public ActionResult DeleteById(int toDoItemId)
     {
         ToDoItem? itemToDelete = new();
 
