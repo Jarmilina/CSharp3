@@ -4,7 +4,7 @@ using ToDoList.Domain.Models;
 
 public class ToDoItemReadResponseDto
 {
-    public int ToDoItemId { get; set; }
+    // public int ToDoItemId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public bool IsCompleted { get; set; }

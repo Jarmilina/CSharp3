@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
+using ToDoList.Persistence;
 using ToDoList.WebApi.Controllers;
 
 using Xunit;
@@ -13,7 +15,14 @@ namespace ToDoList.Test
         public void Put_Item_ReturnsItem()
         {
             // Arrange
-            var controller = new ToDoItemsController();
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+
             var toDoItem = new ToDoItem
             {
                 ToDoItemId = 1,
@@ -21,7 +30,9 @@ namespace ToDoList.Test
                 Description = "Vstavat!",
                 IsCompleted = true
             };
-            controller.Items.Add(toDoItem);
+            context.ToDoItems.Add(toDoItem);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
             var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", false);
 
             // Act
@@ -39,7 +50,14 @@ namespace ToDoList.Test
         public void Put_Item_ItemIsUpdated()
         {
             // Arrange
-            var controller = new ToDoItemsController();
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+
             var toDoItem = new ToDoItem
             {
                 ToDoItemId = 1,
@@ -47,7 +65,9 @@ namespace ToDoList.Test
                 Description = "Vstavat!",
                 IsCompleted = true
             };
-            controller.Items.Add(toDoItem);
+            context.ToDoItems.Add(toDoItem);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
             var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", false);
 
             // Act

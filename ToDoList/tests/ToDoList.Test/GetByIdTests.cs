@@ -1,7 +1,9 @@
 namespace ToDoList.Test;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Domain.Models;
+using ToDoList.Persistence;
 using ToDoList.WebApi.Controllers;
 
 public class GetByIdTests
@@ -10,7 +12,13 @@ public class GetByIdTests
     public void GetById_ValidId_ReturnsItem()
     {
         // Arrange
-        var controller = new ToDoItemsController();
+        var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+        using var context = new ToDoItemsContext(options);
+        context.Database.OpenConnection(); // Needed for in-memory databases
+        context.Database.EnsureCreated();
         var toDoItem = new ToDoItem
         {
             ToDoItemId = 1,
@@ -18,7 +26,9 @@ public class GetByIdTests
             Description = "Popis",
             IsCompleted = false
         };
-        controller.items.Add(toDoItem);
+        context.ToDoItems.Add(toDoItem);
+        context.SaveChanges();
+        var controller = new ToDoItemsController(context);
 
         // Act
         var result = controller.ReadById(toDoItem.ToDoItemId);
@@ -29,7 +39,6 @@ public class GetByIdTests
         Assert.IsType<OkObjectResult>(resultResult);
         Assert.NotNull(value);
 
-        Assert.Equal(toDoItem.ToDoItemId, value.Id);
         Assert.Equal(toDoItem.Description, value.Description);
         Assert.Equal(toDoItem.IsCompleted, value.IsCompleted);
         Assert.Equal(toDoItem.Name, value.Name);
@@ -39,7 +48,14 @@ public class GetByIdTests
     public void GetById_InvalidId_ReturnsNotFound()
     {
         // Arrange
-        var controller = new ToDoItemsController();
+        var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+        using var context = new ToDoItemsContext(options);
+        context.Database.OpenConnection(); // Needed for in-memory databases
+        context.Database.EnsureCreated();
+
         var toDoItem = new ToDoItem
         {
             ToDoItemId = 1,
@@ -47,7 +63,9 @@ public class GetByIdTests
             Description = "Popis",
             IsCompleted = false
         };
-        controller.items.Add(toDoItem);
+        context.ToDoItems.Add(toDoItem);
+        context.SaveChanges();
+        var controller = new ToDoItemsController(context);
 
         // Act
         var invalidId = -1;

@@ -3,12 +3,18 @@ namespace ToDoList.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
+using ToDoList.Persistence;
 
 [ApiController]
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    public List<ToDoItem> Items = []; //public only temporarily!
+    // public readonly List<ToDoItem> Items = []; // po dopsání úkolu již není potřeba a můžeme tento field smazat ;)
+    private readonly ToDoItemsContext context;
+    public ToDoItemsController(ToDoItemsContext context)
+    {
+        this.context = context;
+    } //public only temporarily!
 
     //Od Pala
     // private static readonly List<ToDoItem> items = new List<ToDoItem>(){new()
@@ -31,8 +37,11 @@ public class ToDoItemsController : ControllerBase
         //try to create an item
         try
         {
-            item.ToDoItemId = Items.Count == 0 ? 1 : Items.Max(o => o.ToDoItemId) + 1;
-            Items.Add(item);
+            // item.ToDoItemId = Items.Count == 0 ? 1 : Items.Max(o => o.ToDoItemId) + 1;
+            // Items.Add(item);
+
+            context.ToDoItems.Add(item);
+            context.SaveChanges();
         }
         catch (Exception ex)
         {
@@ -57,18 +66,19 @@ public class ToDoItemsController : ControllerBase
         //         IsCompleted = true
         //     }
         // };
-        var items = Items;
 
         try
         {
-            if (items == null)
+            var items = context.ToDoItems.ToList();
+
+            var itemsDto = items.Select(item => new ToDoItemReadResponseDto
             {
-                return NotFound(); //404
-            }
+                Name = item.Name,
+                Description = item.Description,
+                IsCompleted = item.IsCompleted
+            }).ToList();
 
-            var response = items.Select(item => ToDoItemReadResponseDto.FromDomain(item)).ToList();
-
-            return Ok(response); //200
+            return Ok(itemsDto); //200
         }
 
         catch (Exception ex)
@@ -103,7 +113,8 @@ public class ToDoItemsController : ControllerBase
         //try to read the item
         try
         {
-            var item = Items.Find(o => o.ToDoItemId == toDoItemId);
+            var items = context.ToDoItems.ToList();
+            var item = items.Find(o => o.ToDoItemId == toDoItemId);
             if (item == null)
             {
                 return NotFound();
@@ -125,29 +136,18 @@ public class ToDoItemsController : ControllerBase
         //try to find and update the item
         try
         {
-            var itemToUpdate = Items.Find(o => o.ToDoItemId == toDoItemId);
+            var items = context.ToDoItems.ToList();
+            var itemToUpdate = items.Find(o => o.ToDoItemId == toDoItemId);
 
             if (itemToUpdate == null)
             {
                 return NotFound();
             }
 
-            //Tyto radky ted asi nejsou optimalni, protoze kdzy pouziju record, musim vyplnit vsechny properties.
-            //TODO: Nastavit defaults? Nebo pouzit radeji class? Urcite nechci pri updatu vyplnovat vse.
-            // itemToUpdate.Name = requestItem.Name ?? itemToUpdate.Name;
-            // itemToUpdate.Description = requestItem.Description ?? itemToUpdate.Description;
-            // itemToUpdate.IsCompleted = requestItem.IsCompleted ?? itemToUpdate.IsCompleted;\
-
-            // var itemIndexToUpdate = Items.FindIndex(i => i.ToDoItemId == toDoItemId);
-            // if (itemIndexToUpdate == -1)
-            // {
-            //     return NotFound(); //404
-            // }
-            // itemToUpdate.ToDoItemId = toDoItemId;
-            // Items[itemIndexToUpdate] = itemToUpdate;
             itemToUpdate.Name = requestItem.Name;
             itemToUpdate.Description = requestItem.Description;
             itemToUpdate.IsCompleted = requestItem.IsCompleted;
+            context.SaveChanges();
 
             var response = ToDoItemUpdateResponseDto.FromDomain(itemToUpdate);
 
@@ -162,19 +162,21 @@ public class ToDoItemsController : ControllerBase
     [HttpDelete("{toDoItemId:int}")]
     public ActionResult DeleteById(int toDoItemId)
     {
+        var items = context.ToDoItems.ToList();
         ToDoItem? itemToDelete = new();
 
         //try to find and delete the item
         try
         {
-            itemToDelete = Items.Find(o => o.ToDoItemId == toDoItemId);
+            itemToDelete = items.Find(o => o.ToDoItemId == toDoItemId);
 
             if (itemToDelete == null)
             {
                 return NotFound();
             }
 
-            Items.Remove(itemToDelete);
+            context.ToDoItems.Remove(itemToDelete);
+            context.SaveChanges();
 
             return Ok();
         }

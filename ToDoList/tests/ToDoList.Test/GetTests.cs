@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
+using ToDoList.Persistence;
 using ToDoList.WebApi.Controllers;
 
 
@@ -12,53 +14,15 @@ namespace ToDoList.Test
         public void Get_AllItems_ReturnsOkResultWithItems()
         {
             // Arrange
-            var controller = new ToDoItemsController();
-            var toDoItem = new ToDoItem();
-            controller.Items.Add(toDoItem);
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
 
-            // Act
-            var result = controller.Read();
-            var okResult = result.Result as OkObjectResult;
-            var okValue = okResult.Value;
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
 
-            // Assert
-            // Assert.True(resultResult is OkObjectResult);
-            Assert.NotNull(controller.Items);
-            Assert.IsType<OkObjectResult>(okResult);
-            Assert.IsType<List<ToDoItemReadResponseDto>>(okValue);
-        }
-
-        [Fact]
-        public void Get_AllItems_ReturnsCorrectItems()
-        {
-            // Arrange
-            var controller = new ToDoItemsController();
-            var toDoItem = new ToDoItem
-            {
-                ToDoItemId = 1,
-                Name = "Pondeli",
-                Description = "Vstavat!",
-                IsCompleted = true
-            };
-            controller.Items.Add(toDoItem);
-
-            // Act
-            var result = controller.Read();
-            var okResult = result.Result as OkObjectResult;
-            var items = okResult.Value as List<ToDoItemReadResponseDto>;
-
-            // Assert
-            Assert.Equal("Pondeli", items[0].Name);
-            Assert.Equal("Vstavat!", items[0].Description);
-            Assert.True(items[0].IsCompleted);
-        }
-
-        [Fact]
-        public void Get_AllItems_ReturnsAllItems()
-        {
-            // Arrange
-            var controller = new ToDoItemsController();
-            controller.Items = new List<ToDoItem>
+            var newItems = new List<ToDoItem>
             {
                 new ToDoItem
                 {
@@ -83,21 +47,121 @@ namespace ToDoList.Test
                 }
             };
 
+            context.ToDoItems.AddRange(newItems);
+            context.SaveChanges();
+
+            var controller = new ToDoItemsController(context);
+            // var toDoItem = new ToDoItem();
+            // var items = context.ToDoItems.ToList();
+            // items.Add(toDoItem);
+
+            // Act
+            var result = controller.Read();
+            var okResult = result.Result as OkObjectResult;
+            var okValue = okResult.Value;
+
+            // Assert
+            // Assert.True(resultResult is OkObjectResult);
+            Assert.NotNull(context.ToDoItems);
+            Assert.IsType<OkObjectResult>(okResult);
+            Assert.IsType<List<ToDoItemReadResponseDto>>(okValue);
+        }
+
+        [Fact]
+        public void Get_AllItems_ReturnsCorrectItems()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+
+            var toDoItem = new ToDoItem
+            {
+                ToDoItemId = 1,
+                Name = "Pondeli",
+                Description = "Vstavat!",
+                IsCompleted = true
+            };
+            context.ToDoItems.Add(toDoItem);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
+
             // Act
             var result = controller.Read();
             var okResult = result.Result as OkObjectResult;
             var items = okResult.Value as List<ToDoItemReadResponseDto>;
 
             // Assert
-            Assert.IsType<List<ToDoItemReadResponseDto>>(items);
-            Assert.Equal(3, items.Count);
+            Assert.Equal("Pondeli", items[0].Name);
+            Assert.Equal("Vstavat!", items[0].Description);
+            Assert.True(items[0].IsCompleted);
+        }
+
+        [Fact]
+        public void Get_AllItems_ReturnsAllItems()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+            var newItems = new List<ToDoItem>
+            {
+                new ToDoItem
+                {
+                    ToDoItemId = 1,
+                    Name = "Pondeli",
+                    Description = "Vstavat!",
+                    IsCompleted = true
+                },
+                new ToDoItem
+                {
+                    ToDoItemId = 2,
+                    Name = "Utery",
+                    Description = "Pracovat!",
+                    IsCompleted = true
+                },
+                new ToDoItem
+                {
+                    ToDoItemId = 3,
+                    Name = "Streda",
+                    Description = "Odpocivat!",
+                    IsCompleted = true
+                }
+            };
+            context.ToDoItems.AddRange(newItems);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
+
+            // Act
+            var result = controller.Read();
+            var okResult = result.Result as OkObjectResult;
+            var itemsToDisplay = okResult.Value as List<ToDoItemReadResponseDto>;
+
+            // Assert
+            Assert.IsType<List<ToDoItemReadResponseDto>>(itemsToDisplay);
+            Assert.Equal(3, itemsToDisplay.Count);
         }
 
         [Fact]
         public void Get_AllItems_ReturnsEmptyListWhenNoItems()
         {
             // Arrange
-            var controller = new ToDoItemsController();
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+            var controller = new ToDoItemsController(context);
 
             // Act
             var result = controller.Read();
@@ -116,7 +180,13 @@ namespace ToDoList.Test
         public void Get_ItemById_ReturnsItem()
         {
             // Arrange
-            var controller = new ToDoItemsController();
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
             var toDoItem = new ToDoItem
             {
                 ToDoItemId = 1,
@@ -124,7 +194,9 @@ namespace ToDoList.Test
                 Description = "vstavat",
                 IsCompleted = true
             };
-            controller.Items.Add(toDoItem);
+            context.ToDoItems.Add(toDoItem);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
 
             // Act
             var result = controller.ReadById(1);
@@ -141,8 +213,14 @@ namespace ToDoList.Test
         public void Get_ItemById_ReturnsCorrectItem()
         {
             // Arrange
-            var controller = new ToDoItemsController();
-            controller.Items = new List<ToDoItem>
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+            var newItems = new List<ToDoItem>
             {
                 new ToDoItem
                 {
@@ -163,9 +241,13 @@ namespace ToDoList.Test
                     ToDoItemId = 3,
                     Name = "Streda",
                     Description = "Odpocivat!",
-                    IsCompleted = false
+                    IsCompleted = true
                 }
             };
+
+            context.ToDoItems.AddRange(newItems);
+            context.SaveChanges();
+            var controller = new ToDoItemsController(context);
 
             // Act
             var result = controller.ReadById(2);
@@ -182,7 +264,14 @@ namespace ToDoList.Test
         public void Get_ItemById_ReturnsNotFoundWhenNoItems()
         {
             // Arrange
-            var controller = new ToDoItemsController();
+            var options = new DbContextOptionsBuilder<ToDoItemsContext>()
+                .UseSqlite("Data Source=:memory:")
+                .Options;
+
+            using var context = new ToDoItemsContext(options);
+            context.Database.OpenConnection(); // Needed for in-memory databases
+            context.Database.EnsureCreated();
+            var controller = new ToDoItemsController(context);
 
             // Act
             var result = controller.ReadById(1);
