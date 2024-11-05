@@ -10,17 +10,17 @@ using ToDoList.Persistence.Repositories;
 [Route("api/[controller]")]
 public class ToDoItemsController : ControllerBase
 {
-    private readonly ToDoItemsContext? context;
+    // private readonly ToDoItemsContext? context;
     private readonly IRepository<ToDoItem>? repository;
 
     public ToDoItemsController(IRepository<ToDoItem> repository)
     {
         this.repository = repository;
     }
-    public ToDoItemsController(ToDoItemsContext context)
-    {
-        this.context = context;
-    }
+    // public ToDoItemsController(ToDoItemsContext context)
+    // {
+    //     this.context = context;
+    // }
 
     [HttpPost]
     public ActionResult<ToDoItemCreateRequestDto> Create(ToDoItemCreateRequestDto request)
@@ -47,8 +47,9 @@ public class ToDoItemsController : ControllerBase
         try
         {
             var itemsDto = repository.Read();
+            var response = itemsDto.Select(ToDoItemReadResponseDto.FromDomain).ToList();
 
-            return Ok(itemsDto); //200
+            return Ok(response); //200
         }
 
         catch (Exception ex)
@@ -68,6 +69,7 @@ public class ToDoItemsController : ControllerBase
                 return NotFound();
             }
             var response = ToDoItemReadResponseDto.FromDomain(item);
+
             return Ok(response);
         }
         catch (Exception ex)

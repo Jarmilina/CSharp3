@@ -22,12 +22,12 @@ namespace ToDoList.Persistence.Repositories
 
         public IEnumerable<ToDoItem> Read()
         {
-            var todoItems = context.ToDoItems.ToList();
+            var todoItems = context.ToDoItems;
 
             return todoItems;
         }
 
-        public ToDoItem ReadById(int itemId)
+        public ToDoItem? ReadById(int itemId)
         {
             var toDoItem = context.ToDoItems.Find(itemId);
 
@@ -59,7 +59,7 @@ namespace ToDoList.Persistence.Repositories
 
             if (itemToDelete == null)
             {
-                return itemToDelete;
+                return null;
             }
 
             context.ToDoItems.Remove(itemToDelete);
