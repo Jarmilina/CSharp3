@@ -46,11 +46,11 @@ namespace ToDoList.Test.UnitTests
 
             // Act
             var result = controller.Create(itemToCreate);
-            var createdResult = result.Result;
+            var createdResult = result.Result as ObjectResult;
 
             // Assert
             Assert.IsType<ObjectResult>(createdResult);
-            Assert.Equivalent(new StatusCodeResult(500), createdResult as StatusCodeResult);
+            Assert.Equal(500, createdResult?.StatusCode);
         }
     }
 }
