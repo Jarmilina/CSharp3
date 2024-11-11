@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
 using ToDoList.Persistence.Repositories;
@@ -14,7 +16,7 @@ namespace ToDoList.Test.UnitTests
     public class DeleteUnitTests
     {
         [Fact]
-        public void Delete_Item_ReturnsOk()
+        public void Delete_DeleteByIdValidItemId_ReturnsNoContent()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
@@ -43,8 +45,7 @@ namespace ToDoList.Test.UnitTests
                     IsCompleted = true
                 }
             };
-            repositoryMock.DeleteById(1).Returns(items[0]);
-
+            repositoryMock.DeleteById(Arg.Any<int>()).Returns(items[0]);
 
             // Act
             var result = controller.DeleteById(1);
@@ -53,21 +54,24 @@ namespace ToDoList.Test.UnitTests
             // Assert
             Assert.NotNull(okResult);
             Assert.IsType<OkResult>(okResult);
+            repositoryMock.Received(1).DeleteById(1);
         }
 
         [Fact]
-        public void Delete_NonExistantItemId_ThrowsException()
+        public void Delete_DeleteByIdInvalidItemId_ReturnsNotFound()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            repositoryMock.DeleteById(4).Returns((ToDoItem?)null);
+            repositoryMock.DeleteById(Arg.Any<int>()).ReturnsNull();
 
             // Act
-            var result = controller.DeleteById(4);
+            var notFoundResult = controller.DeleteById(4);
 
             // Assert
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<NotFoundResult>(notFoundResult);
+            repositoryMock.Received(1).DeleteById(4);
+            Assert.Equivalent(new StatusCodeResult(StatusCodes.Status404NotFound), notFoundResult);
         }
     }
 }

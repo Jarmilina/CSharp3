@@ -34,19 +34,19 @@ namespace ToDoList.Persistence.Repositories
             return toDoItem;
         }
 
-        public ToDoItem? UpdateById(int itemId, ToDoItemUpdateRequestDto requestItem)
+        public ToDoItem? UpdateById(ToDoItem item)
         {
             // var items = context.ToDoItems.ToList();
-            var itemToUpdate = context.ToDoItems.Find(itemId);
+            var itemToUpdate = context.ToDoItems.Find(item.ToDoItemId);
 
             if (itemToUpdate == null)
             {
                 return itemToUpdate;
             }
 
-            itemToUpdate.Name = requestItem.Name;
-            itemToUpdate.Description = requestItem.Description;
-            itemToUpdate.IsCompleted = requestItem.IsCompleted;
+            itemToUpdate.Name = item.Name;
+            itemToUpdate.Description = item.Description;
+            itemToUpdate.IsCompleted = item.IsCompleted;
             context.SaveChanges();
 
             return itemToUpdate;
