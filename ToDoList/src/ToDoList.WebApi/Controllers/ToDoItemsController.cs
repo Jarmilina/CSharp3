@@ -81,11 +81,12 @@ public class ToDoItemsController : ControllerBase
     [HttpPut("{toDoItemId:int}")]
     public ActionResult<ToDoItemUpdateResponseDto> UpdateById(int toDoItemId, [FromBody] ToDoItemUpdateRequestDto request)
     {
-        var requestItem = request.ToDomain();
+        var item = request.ToDomain();
+        item.ToDoItemId = toDoItemId;
 
         try
         {
-            var itemToUpdate = repository.UpdateById(toDoItemId, request);
+            var itemToUpdate = repository.UpdateById(item);
 
             if (itemToUpdate == null)
             {

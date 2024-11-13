@@ -1,24 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.Core;
+using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using ToDoList.Domain.DTOs;
 using ToDoList.Domain.Models;
-using ToDoList.Persistence;
 using ToDoList.Persistence.Repositories;
 using ToDoList.WebApi.Controllers;
-using Xunit.Sdk;
 
 namespace ToDoList.Test.UnitTests
 {
     public class GetUnitTests
     {
-        [Fact]
-        public void Get_AllItems_ReturnsOkResultWithItems()
+        public void Get_ReadWhenSomeItemAvailable_ReturnsOkResultWithItems()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
@@ -55,6 +50,7 @@ namespace ToDoList.Test.UnitTests
             var okValue = okResult.Value;
 
             // Assert
+            repositoryMock.Received(1).Read();
             Assert.NotNull(okValue);
             Assert.IsType<OkObjectResult>(okResult);
             Assert.IsType<List<ToDoItemReadResponseDto>>(okValue);
@@ -99,6 +95,7 @@ namespace ToDoList.Test.UnitTests
             var itemsResult = okResult?.Value as List<ToDoItemReadResponseDto>;
 
             // Assert
+            repositoryMock.Received(1).Read();
             Assert.Equal("Pondeli", itemsResult[0].Name);
             Assert.Equal("Vstavat!", itemsResult[0].Description);
             Assert.True(itemsResult[0].IsCompleted);
@@ -143,12 +140,13 @@ namespace ToDoList.Test.UnitTests
             var itemsToDisplay = okResult.Value as List<ToDoItemReadResponseDto>;
 
             // Assert
+            repositoryMock.Received(1).Read();
             Assert.IsType<List<ToDoItemReadResponseDto>>(itemsToDisplay);
             Assert.Equal(3, itemsToDisplay.Count);
         }
 
         [Fact]
-        public void Get_AllItems_ReturnsEmptyListWhenNoItems()
+        public void Get_ReadWhenNoItemAvailable_ReturnsEmptyListWhenNoItems()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
@@ -166,12 +164,31 @@ namespace ToDoList.Test.UnitTests
             //co zobrazim.
 
             // Assert
+            repositoryMock.Received(1).Read();
             Assert.Empty(itemsResult);
             Assert.IsType<OkObjectResult>(okResult);
         }
 
         [Fact]
-        public void Get_ItemById_ReturnsItem()
+        public void Get_ReadUnhandledException_ReturnsInternalServerError()
+        {
+            // Arrange
+            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
+            var controller = new ToDoItemsController(repositoryMock);
+            repositoryMock.Read().Throws(new Exception());
+
+            // Act
+            var result = controller.Read();
+            var errorResult = result.Result as ObjectResult;
+
+            // Assert
+            Assert.IsType<ObjectResult>(errorResult);
+            repositoryMock.Received(1).Read();
+            Assert.Equivalent(new StatusCodeResult(StatusCodes.Status500InternalServerError), errorResult);
+        }
+
+        [Fact]
+        public void Get_ReadByIdWhenSomeItemAvailable_ReturnsItem()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
@@ -201,7 +218,7 @@ namespace ToDoList.Test.UnitTests
                     IsCompleted = true
                 }
             };
-            repositoryMock.ReadById(2).Returns(items[1]);
+            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
 
             // Act
             var result = controller.ReadById(2);
@@ -209,6 +226,7 @@ namespace ToDoList.Test.UnitTests
             var okResultValue = okResult.Value as ToDoItemReadResponseDto;
 
             // Assert
+            repositoryMock.Received(1).ReadById(2);
             Assert.NotNull(okResult);
             Assert.IsType<OkObjectResult>(okResult);
             Assert.IsType<ToDoItemReadResponseDto>(okResultValue);
@@ -244,7 +262,7 @@ namespace ToDoList.Test.UnitTests
                     IsCompleted = true
                 }
             };
-            repositoryMock.ReadById(2).Returns(items[1]);
+            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
 
             // Act
             var result = controller.ReadById(2);
@@ -252,6 +270,7 @@ namespace ToDoList.Test.UnitTests
             var okResultValue = okResult.Value as ToDoItemReadResponseDto;
 
             // Assert
+            repositoryMock.Received(1).ReadById(2);
             Assert.Equal("Utery", okResultValue.Name);
             Assert.Equal("Pracovat!", okResultValue.Description);
             Assert.True(okResultValue.IsCompleted);
@@ -287,7 +306,7 @@ namespace ToDoList.Test.UnitTests
                     IsCompleted = true
                 }
             };
-            repositoryMock.ReadById(2).Returns(items[1]);
+            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
 
             // Act
             var result = controller.ReadById(2);
@@ -304,21 +323,40 @@ namespace ToDoList.Test.UnitTests
         }
 
         [Fact]
-        public void Get_ItemById_ReturnsNotFoundWhenNoItems()
+        public void Get_ReadByIdWhenItemIsNull_ReturnsNotFound()
         {
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
 
             IEnumerable<ToDoItem> items = new List<ToDoItem>();
-            repositoryMock.ReadById(1).Returns((ToDoItem)null);
+            repositoryMock.ReadById(Arg.Any<int>()).ReturnsNull();
 
             // Act
             var result = controller.ReadById(1);
             var noResult = result.Result as NotFoundResult;
 
             // Assert
+            repositoryMock.Received(1).ReadById(1);
             Assert.IsType<NotFoundResult>(noResult);
+        }
+
+        [Fact]
+        public void Get_ReadByIdUnhandledException_ReturnsInternalServerError()
+        {
+            // Arrange
+            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
+            var controller = new ToDoItemsController(repositoryMock);
+            repositoryMock.ReadById(Arg.Any<int>()).Throws(new Exception());
+
+            // Act
+            var result = controller.ReadById(1);
+            var errorResult = result.Result as ObjectResult;
+
+            // Assert
+            Assert.IsType<ObjectResult>(errorResult);
+            repositoryMock.Received(1).ReadById(1);
+            Assert.Equivalent(new StatusCodeResult(StatusCodes.Status500InternalServerError), errorResult);
         }
     }
 }

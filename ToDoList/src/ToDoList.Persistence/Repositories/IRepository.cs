@@ -10,7 +10,7 @@ namespace ToDoList.Persistence.Repositories
 
         public T ReadById(int itemId);
 
-        public T? UpdateById(int itemId, ToDoItemUpdateRequestDto requestItem);
+        public T? UpdateById(T item);
 
         public T? DeleteById(int itemId);
     }
