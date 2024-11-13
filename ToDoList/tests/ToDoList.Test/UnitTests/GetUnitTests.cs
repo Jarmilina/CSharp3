@@ -341,6 +341,7 @@ namespace ToDoList.Test.UnitTests
             Assert.IsType<NotFoundResult>(noResult);
         }
 
+        [Fact]
         public void Get_ReadByIdUnhandledException_ReturnsInternalServerError()
         {
             // Arrange
