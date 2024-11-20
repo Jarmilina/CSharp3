@@ -1,0 +1,53 @@
+﻿@page "/BreakoutRoom"
+@using System.Text
+
+<PageTitle>BreakoutRoom</PageTitle>
+
+<h1>@NapisHeader</h1>
+<p1>@LoremIpsum(20, 30, 3, 10, 2)</p1>
+
+Vitejte v moji aplikaci.
+
+@code
+{
+
+    @* string vitej = "Vitej u nas v breakoutroomu! <3"
+Console.WriteLine(vitej); *@
+    @* return "Vitej u nas v breakoutroomu! <3"; *@
+    private string NapisHeader => "Vitej u nas v breakoutroomu! <3";
+
+
+    static string LoremIpsum(int minWords, int maxWords,
+    int minSentences, int maxSentences,
+    int numParagraphs)
+    {
+
+        var words = new[]{"lorem", "ipsum", "dolor", "sit", "amet", "consectetuer",
+"adipiscing", "elit", "sed", "diam", "nonummy", "nibh", "euismod",
+"tincidunt", "ut", "laoreet", "dolore", "magna", "aliquam", "erat"};
+
+        var rand = new Random();
+        int numSentences = rand.Next(maxSentences - minSentences)
+        + minSentences + 1;
+        int numWords = rand.Next(maxWords - minWords) + minWords + 1;
+
+        StringBuilder result = new StringBuilder();
+
+        for (int p = 0; p < numParagraphs; p++)
+        {
+            result.Append("<p>");
+            for (int s = 0; s < numSentences; s++)
+            {
+                for (int w = 0; w < numWords; w++)
+                {
+                    if (w > 0) { result.Append(" "); }
+                    result.Append(words[rand.Next(words.Length)]);
+                }
+                result.Append(". ");
+            }
+            result.Append("</p>");
+        }
+
+        return result.ToString();
+    }
+}
