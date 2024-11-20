@@ -10,7 +10,7 @@
             : base(options)
         {
             // Uncomment if you want to automatically apply migrations on startup
-            // this.Database.Migrate();
+            this.Database.Migrate();
         }
 
         public DbSet<ToDoItem> ToDoItems { get; set; }

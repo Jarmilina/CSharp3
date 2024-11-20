@@ -14,9 +14,10 @@ public class ToDoItemsClient(HttpClient httpClient) : IToDoItemsClient
 
         toDoItemsView = respose.Select(dto => new ToDoItemView
         {
-            ToDoItemId = dto.Id,
+            ToDoItemId = dto.ToDoItemId,
             Name = dto.Name,
             Description = dto.Description,
+            Category = dto.Category,
             IsCompleted = dto.IsCompleted
         }).ToList();
 
