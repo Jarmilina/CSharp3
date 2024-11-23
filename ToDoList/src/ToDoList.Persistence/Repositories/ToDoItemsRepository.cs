@@ -5,7 +5,7 @@ namespace ToDoList.Persistence.Repositories
     using ToDoList.Domain.DTOs;
     using ToDoList.Domain.Models;
 
-    public class ToDoItemsRepository : IRepository<ToDoItem>
+    public class ToDoItemsRepository : IRepositoryAsync<ToDoItem>
     {
         private readonly ToDoItemsContext context;
 
@@ -14,48 +14,50 @@ namespace ToDoList.Persistence.Repositories
             this.context = context;
         }
 
-        public void Create(ToDoItem item)
+        public async Task CreateAsync(ToDoItem item)
         {
-            context.ToDoItems.Add(item);
-            context.SaveChanges();
+            await context.ToDoItems.AddAsync(item);
+            await context.SaveChangesAsync();
         }
 
-        public IEnumerable<ToDoItem> Read()
+        public async Task<IEnumerable<ToDoItem>> ReadAsync()
         {
             var todoItems = context.ToDoItems;
 
-            return todoItems;
+            return await todoItems.ToListAsync();
         }
 
-        public ToDoItem? ReadById(int itemId)
+        public async Task<ToDoItem?> ReadByIdAsync(int itemId)
         {
-            var toDoItem = context.ToDoItems.Find(itemId);
+            var toDoItem = await context.ToDoItems.FindAsync(itemId);
 
             return toDoItem;
         }
 
-        public ToDoItem? UpdateById(ToDoItem item)
+        public async Task<ToDoItem?> UpdateByIdAsync(ToDoItem item)
         {
             // var items = context.ToDoItems.ToList();
-            var itemToUpdate = context.ToDoItems.Find(item.ToDoItemId);
+            var itemToUpdate = await context.ToDoItems.FindAsync(item.ToDoItemId);
 
             if (itemToUpdate == null)
             {
                 return itemToUpdate;
             }
 
-            itemToUpdate.Name = item.Name;
-            itemToUpdate.Description = item.Description;
-            itemToUpdate.IsCompleted = item.IsCompleted;
-            context.SaveChanges();
+            // itemToUpdate.Name = item.Name;
+            // itemToUpdate.Description = item.Description;
+            // itemToUpdate.Category = item.Category;
+            // itemToUpdate.IsCompleted = item.IsCompleted;
+            context.Entry(itemToUpdate).CurrentValues.SetValues(item);
+
+            await context.SaveChangesAsync();
 
             return itemToUpdate;
         }
 
-        public ToDoItem? DeleteById(int itemId)
+        public async Task<ToDoItem?> DeleteByIdAsync(int itemId)
         {
-            var items = context.ToDoItems;
-            var itemToDelete = items.Find(itemId);
+            var itemToDelete = await context.ToDoItems.FindAsync(itemId);
 
             if (itemToDelete == null)
             {
@@ -63,7 +65,7 @@ namespace ToDoList.Persistence.Repositories
             }
 
             context.ToDoItems.Remove(itemToDelete);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return itemToDelete;
         }

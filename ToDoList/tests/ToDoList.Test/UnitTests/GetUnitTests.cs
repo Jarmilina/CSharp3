@@ -13,150 +13,106 @@ namespace ToDoList.Test.UnitTests
 {
     public class GetUnitTests
     {
-        public void Get_ReadWhenSomeItemAvailable_ReturnsOkResultWithItems()
+        private IRepositoryAsync<ToDoItem> repositoryMock;
+        private ToDoItemsController controller;
+        private List<ToDoItem> items;
+
+        public GetUnitTests()
         {
-            // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            var items = new List<ToDoItem>
+            repositoryMock = Substitute.For<IRepositoryAsync<ToDoItem>>();
+            controller = new ToDoItemsController(repositoryMock);
+            items = new List<ToDoItem>
             {
                 new ToDoItem
                 {
                     ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
+                    Name = "Pondělí",
+                    Description = "Vstávat!",
+                    Category = null,
                     IsCompleted = true
                 },
                 new ToDoItem
                 {
                     ToDoItemId = 2,
-                    Name = "Utery",
+                    Name = "Úterý",
                     Description = "Pracovat!",
+                    Category = "Práce",
                     IsCompleted = true
                 },
                 new ToDoItem
                 {
                     ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
+                    Name = "Středa",
+                    Description = "Odpočívat!",
+                    Category = "Well=being",
                     IsCompleted = true
                 }
             };
-            repositoryMock.Read().Returns(items);
+        }
+
+        [Fact]
+        public async Task Get_ReadWhenSomeItemAvailable_ReturnsOkResultWithItems()
+        {
+            // Arrange
+            repositoryMock.ReadAsync().Returns(Task.FromResult<IEnumerable<ToDoItem>>(items));
 
             // Act
-            var result = controller.Read();
+            var result = await controller.ReadAsync();
             var okResult = result.Result as OkObjectResult;
             var okValue = okResult.Value;
 
             // Assert
-            repositoryMock.Received(1).Read();
+            repositoryMock.Received(1).ReadAsync();
             Assert.NotNull(okValue);
             Assert.IsType<OkObjectResult>(okResult);
             Assert.IsType<List<ToDoItemReadResponseDto>>(okValue);
         }
 
         [Fact]
-        public void Get_AllItems_ReturnsCorrectItems()
+        public async Task Get_AllItems_ReturnsCorrectItems()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-
-            var items = new List<ToDoItem>
-            {
-                new ToDoItem
-                {
-                    ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 2,
-                    Name = "Utery",
-                    Description = "Pracovat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
-                }
-            };
-            repositoryMock.Read().Returns(items);
+            repositoryMock.ReadAsync().Returns(Task.FromResult<IEnumerable<ToDoItem>>(items));
 
             // Act
-            var result = controller.Read();
+            var result = await controller.ReadAsync();
             var okResult = result.Result as OkObjectResult;
             var itemsResult = okResult?.Value as List<ToDoItemReadResponseDto>;
 
             // Assert
-            repositoryMock.Received(1).Read();
-            Assert.Equal("Pondeli", itemsResult[0].Name);
-            Assert.Equal("Vstavat!", itemsResult[0].Description);
+            repositoryMock.Received(1).ReadAsync();
+            Assert.Equal("Pondělí", itemsResult[0].Name);
+            Assert.Equal("Vstávat!", itemsResult[0].Description);
+            Assert.Null(itemsResult[0].Category);
             Assert.True(itemsResult[0].IsCompleted);
         }
 
         [Fact]
-        public void Get_AllItems_ReturnsAllItems()
+        public async Task Get_AllItems_ReturnsAllItems()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-
-            var items = new List<ToDoItem>
-            {
-                new ToDoItem
-                {
-                    ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 2,
-                    Name = "Utery",
-                    Description = "Pracovat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
-                }
-            };
-            repositoryMock.Read().Returns(items);
+            repositoryMock.ReadAsync().Returns(items);
 
             // Act
-            var result = controller.Read();
+            var result = await controller.ReadAsync();
             var okResult = result.Result as OkObjectResult;
             var itemsToDisplay = okResult.Value as List<ToDoItemReadResponseDto>;
 
             // Assert
-            repositoryMock.Received(1).Read();
+            repositoryMock.Received(1).ReadAsync();
             Assert.IsType<List<ToDoItemReadResponseDto>>(itemsToDisplay);
             Assert.Equal(3, itemsToDisplay.Count);
         }
 
         [Fact]
-        public void Get_ReadWhenNoItemAvailable_ReturnsEmptyListWhenNoItems()
+        public async Task Get_ReadWhenNoItemAvailable_ReturnsEmptyListWhenNoItems()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-
-            IEnumerable<ToDoItem> items = new List<ToDoItem>();
-            repositoryMock.Read().Returns(items);
+            List<ToDoItem> emptyItems = [];
+            repositoryMock.ReadAsync().Returns(emptyItems);
 
             // Act
-            var result = controller.Read();
+            var result = await controller.ReadAsync();
             var okResult = result.Result as OkObjectResult;
             var itemsResult = okResult.Value as List<ToDoItemReadResponseDto>;
             //Tady bych si chtela nechat poslat ok s prazdnym seznamem
@@ -164,152 +120,72 @@ namespace ToDoList.Test.UnitTests
             //co zobrazim.
 
             // Assert
-            repositoryMock.Received(1).Read();
+            repositoryMock.Received(1).ReadAsync();
             Assert.Empty(itemsResult);
             Assert.IsType<OkObjectResult>(okResult);
         }
 
         [Fact]
-        public void Get_ReadUnhandledException_ReturnsInternalServerError()
+        public async Task Get_ReadUnhandledException_ReturnsInternalServerError()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            repositoryMock.Read().Throws(new Exception());
+            repositoryMock.ReadAsync().Throws(new Exception());
 
             // Act
-            var result = controller.Read();
+            var result = await controller.ReadAsync();
             var errorResult = result.Result as ObjectResult;
 
             // Assert
             Assert.IsType<ObjectResult>(errorResult);
-            repositoryMock.Received(1).Read();
+            repositoryMock.Received(1).ReadAsync();
             Assert.Equivalent(new StatusCodeResult(StatusCodes.Status500InternalServerError), errorResult);
         }
 
         [Fact]
-        public void Get_ReadByIdWhenSomeItemAvailable_ReturnsItem()
+        public async Task Get_ReadByIdWhenSomeItemAvailable_ReturnsItem()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-
-            var items = new List<ToDoItem>
-            {
-                new ToDoItem
-                {
-                    ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 2,
-                    Name = "Utery",
-                    Description = "Pracovat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
-                }
-            };
-            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
+            repositoryMock.ReadByIdAsync(Arg.Any<int>()).Returns(items[1]);
 
             // Act
-            var result = controller.ReadById(2);
+            var result = await controller.ReadByIdAsync(2);
             var okResult = result.Result as OkObjectResult;
             var okResultValue = okResult.Value as ToDoItemReadResponseDto;
 
             // Assert
-            repositoryMock.Received(1).ReadById(2);
+            repositoryMock.Received(1).ReadByIdAsync(2);
             Assert.NotNull(okResult);
             Assert.IsType<OkObjectResult>(okResult);
             Assert.IsType<ToDoItemReadResponseDto>(okResultValue);
         }
 
         [Fact]
-        public void Get_ItemById_ReturnsCorrectItem()
+        public async Task Get_ItemById_ReturnsCorrectItem()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            var items = new List<ToDoItem>
-            {
-                new ToDoItem
-                {
-                    ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 2,
-                    Name = "Utery",
-                    Description = "Pracovat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
-                }
-            };
-            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
+            repositoryMock.ReadByIdAsync(Arg.Any<int>()).Returns(items[1]);
 
             // Act
-            var result = controller.ReadById(2);
+            var result = await controller.ReadByIdAsync(2);
             var okResult = result.Result as OkObjectResult;
             var okResultValue = okResult.Value as ToDoItemReadResponseDto;
 
             // Assert
-            repositoryMock.Received(1).ReadById(2);
-            Assert.Equal("Utery", okResultValue.Name);
+            repositoryMock.Received(1).ReadByIdAsync(2);
+            Assert.Equal("Úterý", okResultValue.Name);
             Assert.Equal("Pracovat!", okResultValue.Description);
+            Assert.Equal("Práce", okResultValue.Category);
             Assert.True(okResultValue.IsCompleted);
         }
 
         [Fact]
-        public void GetById_ValidId_ReturnsItem()
+        public async Task GetById_ValidId_ReturnsItem()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            var items = new List<ToDoItem>
-            {
-                new ToDoItem
-                {
-                    ToDoItemId = 1,
-                    Name = "Pondeli",
-                    Description = "Vstavat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 2,
-                    Name = "Utery",
-                    Description = "Pracovat!",
-                    IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
-                }
-            };
-            repositoryMock.ReadById(Arg.Any<int>()).Returns(items[1]);
+            repositoryMock.ReadByIdAsync(Arg.Any<int>()).Returns(items[1]);
 
             // Act
-            var result = controller.ReadById(2);
+            var result = await controller.ReadByIdAsync(2);
             var resultResult = result.Result;
             var value = result.GetValue();
 
@@ -323,39 +199,33 @@ namespace ToDoList.Test.UnitTests
         }
 
         [Fact]
-        public void Get_ReadByIdWhenItemIsNull_ReturnsNotFound()
+        public async Task Get_ReadByIdWhenItemIsNull_ReturnsNotFound()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-
-            IEnumerable<ToDoItem> items = new List<ToDoItem>();
-            repositoryMock.ReadById(Arg.Any<int>()).ReturnsNull();
+            repositoryMock.ReadByIdAsync(Arg.Any<int>()).ReturnsNull();
 
             // Act
-            var result = controller.ReadById(1);
+            var result = await controller.ReadByIdAsync(1);
             var noResult = result.Result as NotFoundResult;
 
             // Assert
-            repositoryMock.Received(1).ReadById(1);
+            repositoryMock.Received(1).ReadByIdAsync(1);
             Assert.IsType<NotFoundResult>(noResult);
         }
 
         [Fact]
-        public void Get_ReadByIdUnhandledException_ReturnsInternalServerError()
+        public async Task Get_ReadByIdUnhandledException_ReturnsInternalServerError()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            repositoryMock.ReadById(Arg.Any<int>()).Throws(new Exception());
+            repositoryMock.ReadByIdAsync(Arg.Any<int>()).Throws(new Exception());
 
             // Act
-            var result = controller.ReadById(1);
+            var result = await controller.ReadByIdAsync(1);
             var errorResult = result.Result as ObjectResult;
 
             // Assert
             Assert.IsType<ObjectResult>(errorResult);
-            repositoryMock.Received(1).ReadById(1);
+            repositoryMock.Received(1).ReadByIdAsync(1);
             Assert.Equivalent(new StatusCodeResult(StatusCodes.Status500InternalServerError), errorResult);
         }
     }
