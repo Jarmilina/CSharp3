@@ -21,12 +21,13 @@ namespace ToDoList.Test.UnitTests
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", false);
+            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", "Všelijaké", false);
             var updatedItem = new ToDoItem
             {
                 ToDoItemId = 1,
                 Name = "Pondeli",
                 Description = "Day off!",
+                Category = "Všlijaké",
                 IsCompleted = true
             };
             repositoryMock.UpdateById(Arg.Any<ToDoItem>()).Returns(updatedItem);
@@ -53,7 +54,7 @@ namespace ToDoList.Test.UnitTests
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", false);
+            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", "Všelijaké", false);
             var updatedItem = new ToDoItem
             {
                 ToDoItemId = 1,
@@ -82,12 +83,13 @@ namespace ToDoList.Test.UnitTests
             // Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", false);
+            var updateRequest = new ToDoItemUpdateRequestDto("Pondeli", "Day off!", "Všelijaké", false);
             var updatedItem = new ToDoItem
             {
                 ToDoItemId = 1,
                 Name = "Pondeli",
                 Description = "Day off!",
+                Category = "Všelijaké",
                 IsCompleted = true
             };
             repositoryMock.When(r => r.UpdateById(Arg.Any<ToDoItem>())).Do(r => throw new Exception());

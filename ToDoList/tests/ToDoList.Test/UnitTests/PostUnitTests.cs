@@ -15,7 +15,7 @@ namespace ToDoList.Test.UnitTests
         {
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            var itemRequest = new ToDoItemCreateRequestDto("Pondeli", "Vstavat!", true);
+            var itemRequest = new ToDoItemCreateRequestDto("Pondeli", "Vstavat!", "Všelijaké", true);
 
             // Act
             var result = controller.Create(itemRequest);
@@ -36,7 +36,7 @@ namespace ToDoList.Test.UnitTests
             //Arrange
             var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
             var controller = new ToDoItemsController(repositoryMock);
-            var itemRequest = new ToDoItemCreateRequestDto("Pondeli", "Vstavat!", true);
+            var itemRequest = new ToDoItemCreateRequestDto("Pondeli", "Vstavat!", "Všelijaké", true);
             repositoryMock.When(r => r.Create(Arg.Any<ToDoItem>())).Do(r => throw new Exception());
 
             // Act

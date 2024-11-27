@@ -10,11 +10,16 @@
     <thead>
         <tr>
             <th><button class="pink-button" @onclick="() => SortByIdDesc(toDoItems)">Seřaď podle ID</button></th>
-            <th><button class="pink-button" @onclick="() => SortByNameDesc(toDoItems)">Seřaď podle názvu</button></th>
+            <th></th>
+            <th><button class="pink-button" @onclick="() => SortByNameAsc(toDoItems)">Seřaď podle názvu</button></th>
+            <th><button class="pink-button" @onclick="() => SortByCategoryAsc(toDoItems)">Seřaď podle kategorie</button>
+            </th>
         </tr>
         <tr>
             <th>ID</th>
             <th>Název</th>
+            <th>Popis</th>
+            <th>Kategorie</th>
             <th>Hotovo</th>
         </tr>
     </thead>
@@ -25,8 +30,9 @@
             <tr>
                 <td>@toDoItem.ToDoItemId</td>
                 <td>@toDoItem.Name</td>
-                <td>@toDoItem.IsCompleted</td>
                 <td>@toDoItem.Description</td>
+                <td>@toDoItem.Category</td>
+                <td>@toDoItem.IsCompleted</td>
             </tr>
         }
     }
@@ -56,14 +62,18 @@ new ToDoItemView() {ToDoItemId = 2, Name = "Udělat nepovinný úkol na Czechita
         toDoItems?.Sort((a, b) => b.ToDoItemId.CompareTo(a.ToDoItemId));
     }
 
-    public void SortByNameDesc(List<ToDoItemView> toDoItems)
+    public void SortByNameAsc(List<ToDoItemView> toDoItems)
     {
-        toDoItems?.Sort((a, b) => b.Name.CompareTo(a.Name));
+        toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
+    }
+    public void SortByCategoryAsc(List<ToDoItemView> toDoItems)
+    {
+        toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
     }
 
-    public void SortByIsCompletedDesc(List<ToDoItemView> toDoItems)
+    public void SortByIsCompletedAsc(List<ToDoItemView> toDoItems)
     {
-        toDoItems?.Sort((a, b) => b.IsCompleted.CompareTo(a.IsCompleted));
+        toDoItems?.Sort((a, b) => a.IsCompleted.CompareTo(b.IsCompleted));
     }
 }
 
