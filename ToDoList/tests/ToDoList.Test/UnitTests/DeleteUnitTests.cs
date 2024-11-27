@@ -15,13 +15,15 @@ namespace ToDoList.Test.UnitTests
 {
     public class DeleteUnitTests
     {
-        [Fact]
-        public void Delete_DeleteByIdValidItemId_ReturnsNoContent()
+        private IRepositoryAsync<ToDoItem> repositoryMock;
+        private ToDoItemsController controller;
+        private List<ToDoItem> items;
+
+        public DeleteUnitTests()
         {
-            // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            var items = new List<ToDoItem>
+            repositoryMock = Substitute.For<IRepositoryAsync<ToDoItem>>();
+            controller = new ToDoItemsController(repositoryMock);
+            items = new List<ToDoItem>
             {
                 new ToDoItem
                 {
@@ -36,41 +38,38 @@ namespace ToDoList.Test.UnitTests
                     Name = "Utery",
                     Description = "Pracovat!",
                     IsCompleted = true
-                },
-                new ToDoItem
-                {
-                    ToDoItemId = 3,
-                    Name = "Streda",
-                    Description = "Odpocivat!",
-                    IsCompleted = true
                 }
             };
-            repositoryMock.DeleteById(Arg.Any<int>()).Returns(items[0]);
+        }
+
+        [Fact]
+        public async Task Delete_DeleteByIdValidItemId_ReturnsNoContent()
+        {
+            // Arrange
+            repositoryMock.DeleteByIdAsync(Arg.Any<int>()).Returns(items[0]);
 
             // Act
-            var result = controller.DeleteById(1);
+            var result = await controller.DeleteByIdAsync(1);
             var okResult = result as OkResult;
 
             // Assert
             Assert.NotNull(okResult);
             Assert.IsType<OkResult>(okResult);
-            repositoryMock.Received(1).DeleteById(1);
+            repositoryMock.Received(1).DeleteByIdAsync(1);
         }
 
         [Fact]
-        public void Delete_DeleteByIdInvalidItemId_ReturnsNotFound()
+        public async Task Delete_DeleteByIdInvalidItemId_ReturnsNotFound()
         {
             // Arrange
-            var repositoryMock = Substitute.For<IRepository<ToDoItem>>();
-            var controller = new ToDoItemsController(repositoryMock);
-            repositoryMock.DeleteById(Arg.Any<int>()).ReturnsNull();
+            repositoryMock.DeleteByIdAsync(Arg.Any<int>()).ReturnsNull();
 
             // Act
-            var notFoundResult = controller.DeleteById(4);
+            var notFoundResult = await controller.DeleteByIdAsync(4);
 
             // Assert
             Assert.IsType<NotFoundResult>(notFoundResult);
-            repositoryMock.Received(1).DeleteById(4);
+            repositoryMock.Received(1).DeleteByIdAsync(4);
             Assert.Equivalent(new StatusCodeResult(StatusCodes.Status404NotFound), notFoundResult);
         }
     }
