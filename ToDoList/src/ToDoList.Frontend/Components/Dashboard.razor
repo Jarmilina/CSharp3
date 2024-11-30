@@ -1,13 +1,14 @@
 ﻿@using ToDoList.Frontend.Clients
 @using ToDoList.Frontend.Views
 @inject IToDoItemsClient ToDoItemsClient
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Dashboard</PageTitle>
 
 <h1>Můj Dashboard</h1>
-<table>
-    <thead>
+<table class="table table-hover mt-3">
+    <thead class="table-dark">
         <tr>
             <th><button class="pink-button" @onclick="() => SortByIdDesc(toDoItems)">Seřaď podle ID</button></th>
             <th></th>
@@ -21,41 +22,37 @@
             <th>Popis</th>
             <th>Kategorie</th>
             <th>Hotovo</th>
+            <th>Actions</th>
         </tr>
     </thead>
-    @if (toDoItems is not null)
-    {
-        @foreach (var toDoItem in toDoItems)
+    <tbody>
+        @if (toDoItems is not null)
         {
-            <tr>
-                <td>@toDoItem.ToDoItemId</td>
-                <td>@toDoItem.Name</td>
-                <td>@toDoItem.Description</td>
-                <td>@toDoItem.Category</td>
-                <td>@toDoItem.IsCompleted</td>
-            </tr>
+            @foreach (var toDoItem in toDoItems)
+            {
+                <tr class="table-secondary">
+                    <td>@toDoItem.ToDoItemId</td>
+                    <td>@toDoItem.Name</td>
+                    <td>@toDoItem.Description</td>
+                    <td>@toDoItem.Category</td>
+                    <td>@toDoItem.IsCompleted</td>
+                    <td>
+                        <button class="btn btn-secondary" @onclick="() => EditItemById(toDoItem)">Edit</button>
+                    </td>
+                </tr>
+            }
         }
-    }
-
+    </tbody>
 </table>
 
 @code
 {
-    @* protected override void OnInitialized()
-{
-toDoItems = ToDoItemsClient.ReadItems();
-} *@
+    private List<ToDoItemView>? toDoItems;
+
     protected override async Task OnInitializedAsync()
     {
         toDoItems = await ToDoItemsClient.ReadItemsAsync();
     }
-    private List<ToDoItemView>? toDoItems = [];
-    @* private List<ToDoItemView> toDoItems =
-[
-new ToDoItemView() {ToDoItemId = 1, Name = "Udělat úkol na Czechitas", IsCompleted = false},
-new ToDoItemView() {ToDoItemId = 2, Name = "Udělat nepovinný úkol na Czechitas", IsCompleted = false},
-]; *@
-
 
     public void SortByIdDesc(List<ToDoItemView> toDoItems)
     {
@@ -66,6 +63,7 @@ new ToDoItemView() {ToDoItemId = 2, Name = "Udělat nepovinný úkol na Czechita
     {
         toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
     }
+
     public void SortByCategoryAsc(List<ToDoItemView> toDoItems)
     {
         toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
@@ -74,6 +72,11 @@ new ToDoItemView() {ToDoItemId = 2, Name = "Udělat nepovinný úkol na Czechita
     public void SortByIsCompletedAsc(List<ToDoItemView> toDoItems)
     {
         toDoItems?.Sort((a, b) => a.IsCompleted.CompareTo(b.IsCompleted));
+    }
+
+    public void EditItemById(ToDoItemView toDoItem)
+    {
+        NavigationManager.NavigateTo($"editToDoItem/{toDoItem.ToDoItemId}");
     }
 }
 
