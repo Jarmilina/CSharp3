@@ -107,3 +107,12 @@ th button {
 .zen-button:hover {
   background-color: rgb(168, 88, 140);
 }
+
+
+.icon-green {
+  color: green;
+}
+
+.icon-grape {
+  color: rgba(51, 7, 44, 0.214);
+}
