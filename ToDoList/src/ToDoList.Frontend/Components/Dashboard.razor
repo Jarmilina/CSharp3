@@ -6,18 +6,27 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<h1>Můj Dashboard</h1>
-<table class="table table-hover mt-3">
-    <thead class="table-dark">
+<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        Seřadit
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item" href="#" @onclick="() => SortByIdDesc(toDoItems)">Od nejnovějšího</a>
+        </li>
+        <li><a class="dropdown-item" href="#" @onclick="() => SortByIdAsc(toDoItems)">Od nejstaršího</a>
+        </li>
+        <li><a class="dropdown-item" href="#" @onclick="() => SortByNameAsc(toDoItems)">Podle názvu</a></li>
+        <li><a class="dropdown-item" href="#" @onclick="() => OrderByCategoryAsc(toDoItems)">Podle kategorie</a>
+        </li>
+    </ul>
+</div>
+
+<button class="pink-button" @onclick="() => CreateItem()">Přidat úkol</button>
+<table class="table table-dark table-hover mt-3">
+    <thead class="table table-dark.table-dark"></thead>
+    <thead class="table table-dark.table-dark">
         <tr>
-            <th><button class="pink-button" @onclick="() => SortByIdDesc(toDoItems)">Seřaď podle ID</button></th>
-            <th></th>
-            <th><button class="pink-button" @onclick="() => SortByNameAsc(toDoItems)">Seřaď podle názvu</button></th>
-            <th><button class="pink-button" @onclick="() => SortByCategoryAsc(toDoItems)">Seřaď podle kategorie</button>
-            </th>
-        </tr>
-        <tr>
-            <th>ID</th>
             <th>Název</th>
             <th>Popis</th>
             <th>Kategorie</th>
@@ -31,13 +40,15 @@
             @foreach (var toDoItem in toDoItems)
             {
                 <tr class="table-secondary">
-                    <td>@toDoItem.ToDoItemId</td>
                     <td>@toDoItem.Name</td>
                     <td>@toDoItem.Description</td>
                     <td>@toDoItem.Category</td>
-                    <td>@toDoItem.IsCompleted</td>
                     <td>
-                        <button class="btn btn-secondary" @onclick="() => EditItemById(toDoItem)">Edit</button>
+                        <InputCheckbox id="IsCompleted" @bind-Value="toDoItem.IsCompleted" @onchange="() => Submit(toDoItem)" />
+                    </td>
+                    <td>
+                        <i class="bi bi-pencil-square icon-grape" @onclick="() => EditItemById(toDoItem)"></i>
+                        <i class="bi bi-trash" @onclick="() => ShowDeleteConfirmation(toDoItem)"></i>
                     </td>
                 </tr>
             }
@@ -45,9 +56,31 @@
     </tbody>
 </table>
 
-@code
+<!-- Modal Dialog for Delete Confirmation -->
+@if (showDeleteModal)
 {
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Potvrdit smazání</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Opravdu chcete smazat "@selectedToDoItem?.Name"?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="pink-button" @onclick="HideDeleteConfirmation">Cancel</button>
+                    <button class="pink-button" @onclick="DeleteConfirmed">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
     private List<ToDoItemView>? toDoItems;
+    private ToDoItemView? selectedToDoItem;
+    private bool showDeleteModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,25 +92,58 @@
         toDoItems?.Sort((a, b) => b.ToDoItemId.CompareTo(a.ToDoItemId));
     }
 
+    public void SortByIdAsc(List<ToDoItemView> toDoItems)
+    {
+        toDoItems?.Sort((b, a) => b.ToDoItemId.CompareTo(a.ToDoItemId));
+    }
+
     public void SortByNameAsc(List<ToDoItemView> toDoItems)
     {
         toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
     }
 
-    public void SortByCategoryAsc(List<ToDoItemView> toDoItems)
+    public void OrderByCategoryAsc(List<ToDoItemView> toDoItems)
     {
-        toDoItems?.Sort((a, b) => a.Name.CompareTo(b.Name));
-    }
-
-    public void SortByIsCompletedAsc(List<ToDoItemView> toDoItems)
-    {
-        toDoItems?.Sort((a, b) => a.IsCompleted.CompareTo(b.IsCompleted));
+        toDoItems?.Sort((a, b) => string.Compare(a.Category ?? string.Empty,
+        b.Category ?? string.Empty, StringComparison.OrdinalIgnoreCase));
     }
 
     public void EditItemById(ToDoItemView toDoItem)
     {
         NavigationManager.NavigateTo($"editToDoItem/{toDoItem.ToDoItemId}");
     }
-}
 
-<!-- a mezi píšeš komentář -->
+    private void ShowDeleteConfirmation(ToDoItemView toDoItem)
+    {
+        selectedToDoItem = toDoItem;
+        showDeleteModal = true;
+    }
+
+    private void HideDeleteConfirmation()
+    {
+        selectedToDoItem = null;
+        showDeleteModal = false;
+    }
+
+    private async Task DeleteConfirmed()
+    {
+        if (selectedToDoItem != null)
+        {
+            await ToDoItemsClient.DeleteItemAsync(selectedToDoItem);
+            toDoItems?.Remove(selectedToDoItem);
+        }
+        HideDeleteConfirmation();
+    }
+
+    public void CreateItem()
+    {
+        NavigationManager.NavigateTo($"createToDoItem");
+    }
+
+    public async Task Submit(ToDoItemView toDoItem)
+    {
+        await ToDoItemsClient.UpdateItemAsync(toDoItem);
+        toDoItems = await ToDoItemsClient.ReadItemsAsync();
+        StateHasChanged();
+    }
+}
