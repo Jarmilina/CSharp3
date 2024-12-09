@@ -5,20 +5,61 @@
 
 <Dashboard />
 
-<h2>@ahojNeboj</h2>
-
-<br>
+@* <br>
 <button class="zen-button" @onclick="Increment">Antistress tlačítko</button>
-<br>
-Hodnota úlevy: @counter
+<br> *@
+@* Hodnota úlevy: @counter *@
 @code
 {
-    string ahojNeboj = "Ahoj, ahoj, ničeho se neboj! Všechno bude oukej!";
-
     int counter = 0;
 
     public void Increment()
     {
         counter++;
+    }
+
+    public delegate int NumberOperationDelegate(int number1, int number2);
+
+    NumberOperationDelegate operationDelegate;
+
+    int Multiply(int a, int b)
+    {
+        @* Console.WriteLine("Multiply called."); *@
+        return a * b;
+    }
+
+    int Divide(int a, int b)
+    {
+        Console.WriteLine("Divide called.");
+        return a / b;
+    }
+
+    public int DelejVypocty(int a, int b, NumberOperationDelegate operation)
+    {
+        return operation(a, b);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        NumberOperationDelegate operationDelegate;
+        operationDelegate = Multiply;
+        operationDelegate += Multiply;
+
+        var result = operationDelegate(2, 3);
+        Console.WriteLine(result);
+
+        List<string> strings = ["a", "b", "c", "d", "e"];
+        strings.Where(s => s.Contains('c'));
+
+        Action<string> actionTakingString = LogToConsole;
+        actionTakingString?.Invoke("Ahoj, posilam zpravu.");
+
+
+        Func<int, int, int> numberOperationFunc;
+    }
+
+    public void LogToConsole(string msg)
+    {
+        Console.WriteLine(msg);
     }
 }
