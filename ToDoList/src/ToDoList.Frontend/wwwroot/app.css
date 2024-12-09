@@ -75,20 +75,37 @@ th button {
 }
 
 .pink-button {
-  background-color: rgb(216, 156, 179);
-  color: rgb(249, 222, 242);
+  background-color: rgb(168, 88, 140);
+  color: rgb(240, 227, 239);
   border: none;
   padding: 2px 10px;
   font-family: "Calibri", sans-serif;
-  font-size: 16px;
+  font-size: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 0px;
+}
+
+.pink-button:hover {
+  background-color: #f228c9e6;
+}
+
+.pink-button-large {
+  background-color: rgb(168, 88, 140);
+  color: rgb(240, 227, 239);
+  border: none;
+  padding: 2px 20px;
+  font-family: "Calibri", sans-serif;
+  font-size: 36px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-right: 10px;
 }
 
-.pink-button:hover {
-  background-color: rgb(168, 88, 140);
+.pink-button-large:hover {
+  background-color: #f228c9e6;
 }
 
 .zen-button {
@@ -102,6 +119,9 @@ th button {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-right: 10px;
+  margin-left: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .zen-button:hover {
@@ -114,5 +134,42 @@ th button {
 }
 
 .icon-grape {
-  color: rgba(51, 7, 44, 0.214);
+  color: rgb(168, 88, 140);
+  cursor: pointer
+}
+
+.icon-grape:hover {
+  color: #f228c9e6;
+}
+
+.custom-table {
+  background-color: #a9cff5;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.custom-table thead {
+  background-color: #89acce;
+  color: #fff;
+}
+
+.custom-table tbody tr {
+  background-color: #abcbeb;
+  border-radius: 5px;
+}
+
+.custom-table tbody tr:hover {
+  background-color: rgb(253, 225, 244);
+}
+
+
+body {
+  background-image: url('https://tinywalls.com.au/cdn/shop/products/FORESTFRIENDSBLUEWEB.png?v=1698527632');
+  /* Ensures the image covers the entire screen */
+  background-repeat: repeat;
+  background-attachment: fixed;
+  /* Keeps the background fixed during scrolling */
+  background-position: center;
+  color: #fff;
+  /* White text for readability */
 }

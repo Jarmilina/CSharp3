@@ -6,57 +6,59 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
-        aria-expanded="false">
-        Seřadit
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <li><a class="dropdown-item" href="#" @onclick="() => SortByIdDesc(toDoItems)">Od nejnovějšího</a>
-        </li>
-        <li><a class="dropdown-item" href="#" @onclick="() => SortByIdAsc(toDoItems)">Od nejstaršího</a>
-        </li>
-        <li><a class="dropdown-item" href="#" @onclick="() => SortByNameAsc(toDoItems)">Podle názvu</a></li>
-        <li><a class="dropdown-item" href="#" @onclick="() => OrderByCategoryAsc(toDoItems)">Podle kategorie</a>
-        </li>
-    </ul>
-</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button class="pink-button-large" @onclick="CreateItem">+</button>
+        <div class="dropdown ms=auto">
+            <button class="pink-button dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Seřadit
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="#" @onclick="() => SortByIdDesc(toDoItems)">Od nejnovějšího</a></li>
+                <li><a class="dropdown-item" href="#" @onclick="() => SortByIdAsc(toDoItems)">Od nejstaršího</a></li>
+                <li><a class="dropdown-item" href="#" @onclick="() => SortByNameAsc(toDoItems)">Podle názvu</a></li>
+                <li><a class="dropdown-item" href="#" @onclick="() => OrderByCategoryAsc(toDoItems)">Podle kategorie</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-<button class="pink-button" @onclick="() => CreateItem()">Přidat úkol</button>
-<table class="table table-dark table-hover mt-3">
-    <thead class="table table-dark.table-dark"></thead>
-    <thead class="table table-dark.table-dark">
-        <tr>
-            <th>Název</th>
-            <th>Popis</th>
-            <th>Kategorie</th>
-            <th>Hotovo</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (toDoItems is not null)
-        {
-            @foreach (var toDoItem in toDoItems)
+    <table class="custom-table table-hover mt-3">
+        <thead class="table table-dark.table-dark"></thead>
+        <thead class="table table-dark.table-dark">
+            <tr>
+                <th>Název</th>
+                <th>Popis</th>
+                <th>Kategorie</th>
+                <th>Hotovo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (toDoItems is not null)
             {
-                <tr class="table-secondary">
-                    <td>@toDoItem.Name</td>
-                    <td>@toDoItem.Description</td>
-                    <td>@toDoItem.Category</td>
-                    <td>
-                        <InputCheckbox id="IsCompleted" @bind-Value="toDoItem.IsCompleted" @onchange="() => Submit(toDoItem)" />
-                    </td>
-                    <td>
-                        <i class="bi bi-pencil-square icon-grape" @onclick="() => EditItemById(toDoItem)"></i>
-                        <i class="bi bi-trash" @onclick="() => ShowDeleteConfirmation(toDoItem)"></i>
-                    </td>
-                </tr>
+                @foreach (var toDoItem in toDoItems)
+                {
+                    <tr class="table-secondary">
+                        <td>@toDoItem.Name</td>
+                        <td>@toDoItem.Description</td>
+                        <td>@toDoItem.Category</td>
+                        <td>
+                            <i class="@(!toDoItem.IsCompleted ? "bi bi-heart icon-grape" : "bi bi-heart-fill icon-grape")"
+                                @onclick="() => ToggleCompletion(toDoItem)"></i>
+                        </td>
+                        <td>
+                            <i class="bi bi-pencil-square icon-grape" @onclick="() => EditItemById(toDoItem)"></i>
+                            <i class="bi bi-trash icon-grape" @onclick="() => ShowDeleteConfirmation(toDoItem)"></i>
+                        </td>
+                    </tr>
+                }
             }
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>>
 
-<!-- Modal Dialog for Delete Confirmation -->
 @if (showDeleteModal)
 {
     <div class="modal show d-block" tabindex="-1">
@@ -69,8 +71,8 @@
                     <p>Opravdu chcete smazat "@selectedToDoItem?.Name"?</p>
                 </div>
                 <div class="modal-footer">
-                    <button class="pink-button" @onclick="HideDeleteConfirmation">Cancel</button>
-                    <button class="pink-button" @onclick="DeleteConfirmed">Delete</button>
+                    <button class="pink-button" @onclick="HideDeleteConfirmation">Zrušit</button>
+                    <button class="pink-button" @onclick="DeleteConfirmed">Smazat</button>
                 </div>
             </div>
         </div>
@@ -80,11 +82,18 @@
 @code {
     private List<ToDoItemView>? toDoItems;
     private ToDoItemView? selectedToDoItem;
+
+    [Parameter]
+    public int ItemId { get; set; }
+
+    [SupplyParameterFromForm]
+    public ToDoItemView ToDoItem { get; set; }
     private bool showDeleteModal = false;
 
     protected override async Task OnInitializedAsync()
     {
         toDoItems = await ToDoItemsClient.ReadItemsAsync();
+        SubmitDelegate += LogSubmit;
     }
 
     public void SortByIdDesc(List<ToDoItemView> toDoItems)
@@ -140,10 +149,33 @@
         NavigationManager.NavigateTo($"createToDoItem");
     }
 
+    public ToDoItemViewProcessingDelegate SubmitDelegate;
+
+    public delegate void ToDoItemViewProcessingDelegate(ToDoItemView toDoItem);
+
+
+    public void LogSubmit(ToDoItemView toDoItem)
+    {
+        Console.WriteLine($"Processed Item ID: {toDoItem.ToDoItemId}");
+    }
+
     public async Task Submit(ToDoItemView toDoItem)
     {
-        await ToDoItemsClient.UpdateItemAsync(toDoItem);
-        toDoItems = await ToDoItemsClient.ReadItemsAsync();
-        StateHasChanged();
+        try
+        {
+            await ToDoItemsClient.UpdateItemAsync(toDoItem);
+            toDoItems = await ToDoItemsClient.ReadItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating item: {ex.Message}");
+        }
     }
+
+    private async Task ToggleCompletion(ToDoItemView toDoItem)
+    {
+        toDoItem.IsCompleted = !toDoItem.IsCompleted; // Toggle the state
+        await Submit(toDoItem); // Update the backend and refresh the UI
+    }
+
 }

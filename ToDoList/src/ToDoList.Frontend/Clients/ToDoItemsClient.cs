@@ -11,7 +11,7 @@ public class ToDoItemsClient(HttpClient httpClient) : IToDoItemsClient //primary
         try
         {
             var response = await httpClient.PostAsJsonAsync("api/ToDoItems", itemRequest);
-            if (response.StatusCode == System.Net.HttpStatusCode.Created)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Console.WriteLine($"POST request successful: Created a ToDoItem.");
                 return;
@@ -108,7 +108,7 @@ public class ToDoItemsClient(HttpClient httpClient) : IToDoItemsClient //primary
         {
             var itemRequest = new ToDoItemUpdateRequestDto(itemView.Name, itemView.Description, itemView.Category, itemView.IsCompleted);
             var response = await httpClient.PutAsJsonAsync($"api/ToDoItems/{itemView.ToDoItemId}", itemRequest);
-            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Console.WriteLine($"PUT request successful: Updated ToDoItem with id {itemView.ToDoItemId}.");
                 return;
